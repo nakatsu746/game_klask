@@ -29,6 +29,15 @@ img_ball = pygame.image.load("image/ball.png")
 img_biscuit = pygame.image.load("image/biscuit.png")
 img_power_bar = pygame.image.load("image/power_bar.png")
 
+# ******************** 効果音 ********************
+snd_smash = None        # スマッシュの音
+snd_collision = None    # ボールとビスケットが当たった音
+snd_bound = None        # ボールが壁に当たった音
+snd_stick = None        # ビスケットがストライカーにひっついた音
+snd_point_pl = None     # プレイヤーの得点時の音
+snd_point_com = None    # コンピュータの得点時の音
+snd_pl_win = None       # プレイヤーの勝利
+snd_pl_lose = None      # プレイヤーの負け
 
 # ******************** 変数／定数 ********************
 # =============== COLOR ===============
@@ -176,6 +185,7 @@ def striker_player():
         pl_y = SCREEN_HEIGHT - img_striker[pl_bis].get_height()/2
     # 自陣の穴に落ちる
     if get_dis(HOLE_PL_X, HOLE_Y, pl_x, pl_y) < img_hole.get_width()/2 * img_hole.get_height()/2:
+        snd_point_com.play()
         point_com += 1
         turn[PLAYER] = True
         goal[COMPUTER] = 60
@@ -235,6 +245,7 @@ def striker_computer():
 
     # 自陣の穴に落ちる
     if get_dis(HOLE_COM_X, HOLE_Y, com_x, com_y) < img_hole.get_width()/2 * img_hole.get_height()/2:
+        snd_point_pl.play()
         point_pl += 1
         turn[COMPUTER] = True
         goal[PLAYER] = 60
@@ -259,12 +270,16 @@ def ball():
     
     # ボールがボードの端に当たった時
     if ball_y < SCREEN_SCORE_BOARD + ball_r and ball_vy < 0:    # ボード：下
+        snd_bound.play()
         ball_vy = -ball_vy
     if ball_y > SCREEN_HEIGHT - ball_r and ball_vy > 0:         # ボード：上
+        snd_bound.play()
         ball_vy = -ball_vy
     if ball_x < ball_r and ball_vx < 0:                         # ボード：左
+        snd_bound.play()
         ball_vx = -ball_vx
     if ball_x > SCREEN_WIDTH - ball_r and ball_vx > 0:          # ボード：右
+        snd_bound.play()
         ball_vx = -ball_vx
         
     # ボールの座標がボード外 -> ボードの端へ
@@ -283,9 +298,11 @@ def ball():
     
     # 接触：プレイヤー／コンピュータ -> ボール
     if get_dis(ball_x, ball_y, pl_x, pl_y) < (img_ball.get_width()/2 + img_striker[pl_bis].get_width()/2)**2:   # ボールとプレイヤー
+        snd_smash.play()
         ball_vx = pl_vx * POWER
         ball_vy = pl_vy * POWER
     if get_dis(ball_x, ball_y, com_x, com_y) < (img_ball.get_width()/2 + img_striker[com_bis].get_width()/2)**2: # ボールとコンピュータ
+        snd_smash.play()
         ball_vx = com_vx * POWER
         ball_vy = com_vy * POWER
         
@@ -294,6 +311,7 @@ def ball():
         ball_vx *= 0.5
         ball_vy *= 0.5
         if abs(ball_vx) < 1 and abs(ball_vy) < 1:
+            snd_point_pl.play()
             point_pl += 1
             turn[COMPUTER] = True
             goal[PLAYER] = 60
@@ -305,6 +323,7 @@ def ball():
         ball_vx *= 0.5
         ball_vy *= 0.5
         if abs(ball_vx) < 1 and abs(ball_vy) < 1:
+            snd_point_com.play()
             point_com += 1
             turn[PLAYER] = True
             goal[COMPUTER] = 60
@@ -364,9 +383,11 @@ def biscuit():
                 bis_y[i] = bis_y[i] + BISCUIT_POWER * math.sin(math.radians(bis_a[i]))                
                 # 接触：プレイヤーとビスケット -> ビスケットがくっつく
                 if get_dis(bis_x[i], bis_y[i], pl_x, pl_y) < (img_biscuit.get_width()/2 + img_striker[pl_bis].get_width()/2)**2:
+                    snd_stick.play()
                     pl_bis += 1
                     bis_f[i] = False
                     if pl_bis >= 2:
+                        snd_point_com.play()
                         point_com += 1
                         turn[PLAYER] = True
                         goal[COMPUTER] = 60
@@ -385,9 +406,11 @@ def biscuit():
                 bis_y[i] = bis_y[i] + BISCUIT_POWER * math.sin(math.radians(bis_a[i]))
                 # 接触：コンピュータとビスケット -> ビスケットがくっつく
                 if get_dis(bis_x[i], bis_y[i], com_x, com_y) < (img_biscuit.get_width()/2 + img_striker[com_bis].get_width()/2)**2:
+                    snd_stick.play()
                     com_bis += 1
                     bis_f[i] = False
                     if com_bis >= 2:
+                        snd_point_pl.play()
                         point_pl += 1
                         turn[COMPUTER] = True
                         goal[PLAYER] = 60
@@ -397,6 +420,7 @@ def biscuit():
                         
             # 接触：ボールとビスケット -> ビスケットとボールがぶつかった時の速度を反発係数とエネルギー保存の法則から求める
             if get_dis(bis_x[i], bis_y[i], ball_x, ball_y) <= (img_biscuit.get_width()/2 + img_ball.get_width()/2)**2:
+                snd_collision.play()
                 # x,y方向の速度(移動量)：ボールとビスケット
                 bis_vx[i], ball_vx = object_collision(BISCUIT_MASS, bis_vx[i], BALL_MASS, ball_vx)
                 bis_vy[i], ball_vy = object_collision(BISCUIT_MASS, bis_vy[i], BALL_MASS, ball_vy)
@@ -583,6 +607,7 @@ def board_set():
 def main():
     global idx, tmr, level, turn, point_pl, point_com, power_set
     global flick_pl_x, flick_pl_v, flick_com_x, flick_com_v
+    global snd_smash, snd_collision, snd_bound, snd_stick, snd_point_pl, snd_point_com, snd_pl_win, snd_pl_lose
     
     pygame.init()
     pygame.display.set_caption("KLACK GAME")
@@ -590,6 +615,16 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
 
+    # 効果音
+    snd_smash = pygame.mixer.Sound("sound/smash.mp3")
+    snd_collision = pygame.mixer.Sound("sound/collision.mp3")
+    snd_bound = pygame.mixer.Sound("sound/bound.mp3")
+    snd_stick = pygame.mixer.Sound("sound/stick.mp3")
+    snd_point_pl = pygame.mixer.Sound("sound/point_player.mp3")
+    snd_point_com = pygame.mixer.Sound("sound/point_computer.mp3")
+    snd_pl_win = pygame.mixer.Sound("sound/player_win.mp3")
+    snd_pl_lose = pygame.mixer.Sound("sound/player_lose.mp3")
+    
     tmr = 0
     
     while True:
@@ -605,6 +640,11 @@ def main():
 
         # タイトル：レベル選択
         if idx == 0:
+            if tmr == 1:
+                # タイトル音楽：開始
+                pygame.mixer.music.load("music/Stellar_Wind-Unicorn_Heads.mp3")
+                pygame.mixer.music.play(-1)
+
             # マウスのx,y座標とクリックの有無
             mouseX, mouseY = pygame.mouse.get_pos()
             mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
@@ -618,6 +658,11 @@ def main():
                 if tmr%10 < 5:
                     screen.blit(img_text[1], [280 - img_text[1].get_width()/2, 650])
                 if mBtn_1 == 1:
+                    # タイトル音楽：停止 ／ プレイ中音楽：開始
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
+                    pygame.mixer.music.play(-1)
+
                     level = 0
                     idx = 1
                     tmr = 0
@@ -629,6 +674,11 @@ def main():
                 if tmr%10 < 5:
                     screen.blit(img_text[2], [SCREEN_WIDTH/2 - img_text[2].get_width()/2, 650])
                 if mBtn_1 == 1:
+                    # タイトル音楽：停止 ／ プレイ中音楽：開始
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
+                    pygame.mixer.music.play(-1)
+                    
                     level = 1
                     idx = 1
                     tmr = 0
@@ -640,6 +690,11 @@ def main():
                 if tmr%10 < 5:
                     screen.blit(img_text[3], [(SCREEN_WIDTH - 280) - img_text[3].get_width()/2, 650])
                 if mBtn_1 == 1:
+                    # タイトル音楽：停止 ／ プレイ中音楽：開始
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
+                    pygame.mixer.music.play(-1)
+                    
                     level = 2
                     idx = 1
                     tmr = 0
@@ -732,12 +787,19 @@ def main():
 
         # ゲーム終了
         elif idx == 4:
+            # 効果音：勝敗決定
+            if tmr == 1:
+                if point_pl == POINT_WIN:
+                    snd_pl_win.play()
+                elif point_com == POINT_WIN:
+                    snd_pl_lose.play()
+                    
             draw_board(screen)
             # 文字：結果表示
             if tmr%50 < 40:
                 if point_pl == POINT_WIN:
                     screen.blit(img_text[8], [SCREEN_WIDTH/2 - img_text[8].get_width()/2, BOARD_HEIGHT_CENTER - img_text[8].get_height()/2])
-                elif point_com == 6:
+                elif point_com == POINT_WIN:
                     screen.blit(img_text[9], [SCREEN_WIDTH/2 - img_text[9].get_width()/2, BOARD_HEIGHT_CENTER - img_text[9].get_height()/2])
             # タイトルへ
             if tmr == 180:

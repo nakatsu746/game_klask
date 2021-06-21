@@ -4,7 +4,7 @@ import math
 import random
 
 # ******************** 画像の読み込み ********************
-img_title = pygame.image.load("image/title.png")
+img_title_board = pygame.image.load("image/title_board.png")
 img_text = [
     pygame.image.load("image/klask.png"),
     pygame.image.load("image/easy.png"),
@@ -15,7 +15,11 @@ img_text = [
     pygame.image.load("image/score_double_biscuit.png"),
     pygame.image.load("image/score_klask.png"),
     pygame.image.load("image/you_win.png"),
-    pygame.image.load("image/you_lose.png")
+    pygame.image.load("image/you_lose.png"),
+    pygame.image.load("image/how_to_play.png"),
+    pygame.image.load("image/next.png"),
+    pygame.image.load("image/back.png"),
+    pygame.image.load("image/title.png")
 ]
 img_board = pygame.image.load("image/board.png")
 img_hole = pygame.image.load("image/hole.png")
@@ -29,6 +33,7 @@ img_ball = pygame.image.load("image/ball.png")
 img_biscuit = pygame.image.load("image/biscuit.png")
 img_power_bar = pygame.image.load("image/power_bar.png")
 img_rule = [
+    None,
     pygame.image.load("image/rule_1.png"),
     pygame.image.load("image/rule_2.png"),
     pygame.image.load("image/rule_3.png"),
@@ -512,7 +517,7 @@ def flick_off(sc, key):
 
 
 # ******************** キックオフ ********************
-def kick_off():
+def kick_off(mb):
     global ball_x, ball_y
     global com_x, com_y
     global img_ball
@@ -556,19 +561,15 @@ def kick_off():
             ball_x = SCREEN_WIDTH/2 + img_ball.get_width()/2
         if ball_x > SCREEN_WIDTH - img_ball.get_width()/2:
             ball_x = SCREEN_WIDTH - img_ball.get_width()/2
-                    
-        # マウス入力
-        mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
-
 
         # 画像：透明度の調整
         img_ball.set_alpha(255)
         # 枠内 + クリック -> ボールをセット
         if get_dis(ball_x, ball_y, SCREEN_WIDTH, SCREEN_SCORE_BOARD+5) <= 140**2:
-            if mBtn_1 == 1:
+            if mb == True:
                 return True
         elif get_dis(ball_x, ball_y, SCREEN_WIDTH, SCREEN_HEIGHT-5) <= 140**2:
-            if mBtn_1 == 1:
+            if mb == True:
                 return True
         else:
             img_ball.set_alpha(150)
@@ -608,8 +609,112 @@ def board_set():
 
 
 # ******************** タイトル画面 ********************
+def title_screen(sc, mx, my, mb):
+    global idx, tmr, level
+    
+    # 画像：背景／文字
+    sc.blit(img_title_board, [0, 0])            
+    sc.blit(img_text[0], [SCREEN_WIDTH/2 - img_text[0].get_width()/2, SCREEN_HEIGHT/2 - 300])
 
+    # 画像：EASY
+    if 280 - img_text[1].get_width()/2 < mx < 280 + img_text[1].get_width()/2 and \
+        650 < my < 650 + img_text[1].get_height():
+        if tmr%10 < 5:
+            sc.blit(img_text[1], [280 - img_text[1].get_width()/2, 650])
+        if mb == True:
+            # タイトル音楽：停止 ／ プレイ中音楽：開始
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
+            pygame.mixer.music.play(-1)
 
+            level = 0
+            idx = 1
+            tmr = 0
+    else:
+        sc.blit(img_text[1], [280 - img_text[1].get_width()/2, 650])
+        
+    # 画像：NORMAL
+    if SCREEN_WIDTH/2 - img_text[2].get_width()/2 < mx < SCREEN_WIDTH/2 + img_text[2].get_width()/2 and \
+        650 < my< 650 + img_text[2].get_height():
+        if tmr%10 < 5:
+            sc.blit(img_text[2], [SCREEN_WIDTH/2 - img_text[2].get_width()/2, 650])
+        if mb == True:
+            # タイトル音楽：停止 ／ プレイ中音楽：開始
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
+            pygame.mixer.music.play(-1)
+                    
+            level = 1
+            idx = 1
+            tmr = 0
+    else:
+        sc.blit(img_text[2], [SCREEN_WIDTH/2 - img_text[2].get_width()/2, 650])
+        
+    # 画像：HARD
+    if (SCREEN_WIDTH - 280) - img_text[3].get_width()/2 < mx < (SCREEN_WIDTH - 280) + img_text[3].get_width()/2 and \
+        650 < my < 650 + img_text[3].get_height():
+        if tmr%10 < 5:
+            sc.blit(img_text[3], [(SCREEN_WIDTH - 280) - img_text[3].get_width()/2, 650])
+        if mb == True:
+            # タイトル音楽：停止 ／ プレイ中音楽：開始
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
+            pygame.mixer.music.play(-1)
+                    
+            level = 2
+            idx = 1
+            tmr = 0
+    else:
+        sc.blit(img_text[3], [(SCREEN_WIDTH - 280) - img_text[3].get_width()/2, 650])
+
+    # 画像：ルール(遊び方)
+    if 700 < mx < 700 + img_text[10].get_width() and 850 < my < 850 + img_text[10].get_height():
+        if tmr%10 < 5:
+            sc.blit(img_text[10], [700, 850])
+        if mb == True:
+            idx = -1
+            tmr = 0
+    else:
+        sc.blit(img_text[10], [700, 850])
+    
+
+# ******************** ルール画面(遊び方説明) ********************
+def rule_screen(sc, mx, my, mb):
+    global idx, tmr
+    
+    # 画像：各説明内容
+    sc.blit(img_rule[-1 * idx], [0, 0])
+    # 画像：NEXT(次の画面)
+    if idx > -8:
+        if 1350 < mx < 1350 + img_text[11].get_width() and 930 < my < 930 + img_text[11].get_height():
+            if tmr%10 < 5:
+                sc.blit(img_text[11], [1350, 930])
+            if mb == True and tmr > 30:
+                idx -= 1
+                tmr = 0
+        else:
+            sc.blit(img_text[11], [1350, 930])
+
+    # 画像：BACK(前の画面)
+    if idx < -1:
+        if 50 < mx < 50 + img_text[12].get_width() and 930 < my < 930 + img_text[11].get_height():
+            if tmr%10 < 5:
+                sc.blit(img_text[12], [50, 930])
+            if mb == True and tmr > 30:
+                idx += 1
+                tmr = 0
+        else:
+            sc.blit(img_text[12], [50, 930])
+
+    # 画像：TITLE(タイトル画面)
+    if 730 < mx < 730 + img_text[13].get_width() and 930 < my < 930 + img_text[13].get_height():
+        if tmr%10 < 5:
+            sc.blit(img_text[13], [730, 930])
+        if mb == True and tmr > 30:
+            idx = 0
+    else:
+        sc.blit(img_text[13], [730, 930])
+        
 
 # ============================================================
 #                           MAIN
@@ -654,66 +759,19 @@ def main():
         mouseX, mouseY = pygame.mouse.get_pos()
         mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
 
-        # タイトル：レベル選択
+
+        # 遊び方 説明画面
+        if idx < 0:
+            rule_screen(screen, mouseX, mouseY, mBtn_1)
+            
+        # タイトル画面：レベル選択
         if idx == 0:
             if tmr == 1:
                 # タイトル音楽：開始
                 pygame.mixer.music.load("music/Stellar_Wind-Unicorn_Heads.mp3")
                 pygame.mixer.music.play(-1)
-
-
-            # 画像：背景／文字
-            screen.blit(img_title, [0, 0])            
-            screen.blit(img_text[0], [SCREEN_WIDTH/2 - img_text[0].get_width()/2, SCREEN_HEIGHT/2 - 300])
-
-            # 画像：EASY
-            if 280 - img_text[1].get_width()/2 < mouseX < 280 + img_text[1].get_width()/2 and \
-               650 < mouseY < 650 + img_text[1].get_height():
-                if tmr%10 < 5:
-                    screen.blit(img_text[1], [280 - img_text[1].get_width()/2, 650])
-                if mBtn_1 == 1:
-                    # タイトル音楽：停止 ／ プレイ中音楽：開始
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
-                    pygame.mixer.music.play(-1)
-
-                    level = 0
-                    idx = 1
-                    tmr = 0
-            else:
-                screen.blit(img_text[1], [280 - img_text[1].get_width()/2, 650])
-            # 画像：NORMAL
-            if SCREEN_WIDTH/2 - img_text[2].get_width()/2 < mouseX < SCREEN_WIDTH/2 + img_text[2].get_width()/2 and \
-               650 < mouseY < 650 + img_text[2].get_height():
-                if tmr%10 < 5:
-                    screen.blit(img_text[2], [SCREEN_WIDTH/2 - img_text[2].get_width()/2, 650])
-                if mBtn_1 == 1:
-                    # タイトル音楽：停止 ／ プレイ中音楽：開始
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
-                    pygame.mixer.music.play(-1)
-                    
-                    level = 1
-                    idx = 1
-                    tmr = 0
-            else:
-                screen.blit(img_text[2], [SCREEN_WIDTH/2 - img_text[2].get_width()/2, 650])
-            # 画像：HARD
-            if (SCREEN_WIDTH - 280) - img_text[3].get_width()/2 < mouseX < (SCREEN_WIDTH - 280) + img_text[3].get_width()/2 and \
-               650 < mouseY < 650 + img_text[3].get_height():
-                if tmr%10 < 5:
-                    screen.blit(img_text[3], [(SCREEN_WIDTH - 280) - img_text[3].get_width()/2, 650])
-                if mBtn_1 == 1:
-                    # タイトル音楽：停止 ／ プレイ中音楽：開始
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load("music/Digital_Ghosts-Unicorn_Heads.mp3")
-                    pygame.mixer.music.play(-1)
-                    
-                    level = 2
-                    idx = 1
-                    tmr = 0
-            else:
-                screen.blit(img_text[3], [(SCREEN_WIDTH - 280) - img_text[3].get_width()/2, 650])
+            # タイトル画面
+            title_screen(screen, mouseX, mouseY, mBtn_1)
                 
         # フリックオフ：先攻／後攻を決める
         elif idx == 1:
@@ -772,7 +830,7 @@ def main():
 
             # キックオフ：先攻 ／ 得点された側
             if turn[COMPUTER] == True or turn[PLAYER] == True:
-                if kick_off() == True:
+                if kick_off(mBtn_1) == True:
                     turn[COMPUTER] = False
                     turn[PLAYER] = False
                     tmr = 1

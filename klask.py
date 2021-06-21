@@ -28,6 +28,16 @@ img_striker = [
 img_ball = pygame.image.load("image/ball.png")
 img_biscuit = pygame.image.load("image/biscuit.png")
 img_power_bar = pygame.image.load("image/power_bar.png")
+img_rule = [
+    pygame.image.load("image/rule_1.png"),
+    pygame.image.load("image/rule_2.png"),
+    pygame.image.load("image/rule_3.png"),
+    pygame.image.load("image/rule_4.png"),
+    pygame.image.load("image/rule_5.png"),
+    pygame.image.load("image/rule_6.png"),
+    pygame.image.load("image/rule_7.png"),
+    pygame.image.load("image/rule_8.png")
+]
 
 # ******************** 効果音 ********************
 snd_smash = None        # スマッシュの音
@@ -163,17 +173,15 @@ def draw_board(sc):
 # ============================================================
 
 # ******************** プレイヤーのストライカー ********************
-def striker_player():
+def striker_player(mx, my):
     global idx, tmr, text_goal, point_com
     global pl_x, pl_y, pl_vx, pl_vy
 
-    # マウス：x,y座標
-    mouseX, mouseY = pygame.mouse.get_pos()
     # 速度(移動量)／座標
-    pl_vx = mouseX - pl_x
-    pl_vy = mouseY - pl_y
-    pl_x = mouseX
-    pl_y = mouseY
+    pl_vx = mx - pl_x
+    pl_vy = my - pl_y
+    pl_x = mx
+    pl_y = my
     # 移動(座標)制限
     if pl_x < SCREEN_WIDTH/2 + img_striker[pl_bis].get_width()/2:
         pl_x = SCREEN_WIDTH/2 + img_striker[pl_bis].get_width()/2
@@ -599,6 +607,10 @@ def board_set():
         bis_vy[i] = 0
 
 
+# ******************** タイトル画面 ********************
+
+
+
 # ============================================================
 #                           MAIN
 # ============================================================
@@ -638,6 +650,10 @@ def main():
         screen.fill(BLACK)
         key = pygame.key.get_pressed()
 
+        # マウスのx,y座標とクリックの有無
+        mouseX, mouseY = pygame.mouse.get_pos()
+        mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
+
         # タイトル：レベル選択
         if idx == 0:
             if tmr == 1:
@@ -645,9 +661,7 @@ def main():
                 pygame.mixer.music.load("music/Stellar_Wind-Unicorn_Heads.mp3")
                 pygame.mixer.music.play(-1)
 
-            # マウスのx,y座標とクリックの有無
-            mouseX, mouseY = pygame.mouse.get_pos()
-            mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
+
             # 画像：背景／文字
             screen.blit(img_title, [0, 0])            
             screen.blit(img_text[0], [SCREEN_WIDTH/2 - img_text[0].get_width()/2, SCREEN_HEIGHT/2 - 300])
@@ -764,7 +778,7 @@ def main():
                     tmr = 1
             # 操作：ゲームプレイ
             elif turn[COMPUTER] == False and turn[PLAYER] == False and tmr > 60:        
-                striker_player()
+                striker_player(mouseX, mouseY)
                 striker_computer()
                 ball()
                 biscuit()
